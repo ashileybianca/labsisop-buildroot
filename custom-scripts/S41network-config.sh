@@ -1,15 +1,14 @@
 #!/bin/sh
 #
 # Configuring host communication.
-#
-
+#.export PATH=$PATH:/workspaces/labsisop-buildroot/output/host/bin
 case "$1" in
   start)
 	printf "Configuring host communication."
 	
 	/sbin/ifconfig eth0 192.168.1.10 up
-	/sbin/route add -host 10.0.4.194 dev eth0
-	/sbin/route add default gw 10.0.4.194
+	/sbin/route add -host 10.0.2.36 dev eth0
+	/sbin/route add default gw 10.0.2.36
 	[ $? = 0 ] && echo "OK" || echo "FAIL"
 	;;
   stop)
