@@ -18,7 +18,7 @@ def get_datetime():
                 break
 
         uptime = get_uptime()
-E
+
         current_timestamp = btime + int(uptime)
 
         tm = time.gmtime(current_timestamp)
