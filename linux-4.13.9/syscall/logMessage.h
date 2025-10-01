@@ -1,0 +1,1 @@
+smlinkage long sys_log_message (const char __user * msg);

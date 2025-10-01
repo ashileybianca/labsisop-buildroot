@@ -17,3 +17,6 @@ $COMPILER -o $BUILDROOT_DIR/output/target/bin/syscall_test $BUILDROOT_DIR/custom
 
 #Compile the syscall_test_sleep.c
 $COMPILER -o $BUILDROOT_DIR/output/target/bin/syscall_test_sleep $BUILDROOT_DIR/custom-scripts/syscall_test_sleep.c
+
+#Compile the syscall_test_log.c
+$COMPILER -o $BUILDROOT_DIR/output/target/bin/syscall_test_log $BUILDROOT_DIR/custom-scripts/syscall_test_log.c
