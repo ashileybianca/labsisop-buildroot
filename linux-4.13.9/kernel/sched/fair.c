@@ -6064,8 +6064,11 @@ wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
 
 static void set_last_buddy(struct sched_entity *se)
 {
-	if (entity_is_task(se) && unlikely(task_of(se)->policy == SCHED_IDLE))
-		return;
+	if (entity_is_task(se)){
+		int policy = task_of(se)->policy;
+		if (unlikely(policy == SCHED_IDLE || policy == SCHED_LOW_IDLE))
+			return;
+	}
 
 	for_each_sched_entity(se) {
 		if (SCHED_WARN_ON(!se->on_rq))
@@ -6076,8 +6079,11 @@ static void set_last_buddy(struct sched_entity *se)
 
 static void set_next_buddy(struct sched_entity *se)
 {
-	if (entity_is_task(se) && unlikely(task_of(se)->policy == SCHED_IDLE))
-		return;
+	if (entity_is_task(se)) {
+		int policy = task_of(se)->policy;
+		if (unlikely(policy == SCHED_IDLE || policy == SCHED_LOW_IDLE))
+			return;
+	}
 
 	for_each_sched_entity(se) {
 		if (SCHED_WARN_ON(!se->on_rq))
@@ -6085,6 +6091,7 @@ static void set_next_buddy(struct sched_entity *se)
 		cfs_rq_of(se)->next = se;
 	}
 }
+
 
 static void set_skip_buddy(struct sched_entity *se)
 {
@@ -6133,9 +6140,14 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
 	if (test_tsk_need_resched(curr))
 		return;
 
-	/* Idle tasks are by definition preempted by non-idle tasks. */
+	/* Idle tasks are preempted by non-idle tasks (except LOW_IDLE). */
 	if (unlikely(curr->policy == SCHED_IDLE) &&
-	    likely(p->policy != SCHED_IDLE))
+		likely(p->policy != SCHED_IDLE && p->policy != SCHED_LOW_IDLE))
+		goto preempt;
+
+	/* LOW_IDLE tasks are preempted by any non-LOW_IDLE task. */
+	if (unlikely(curr->policy == SCHED_LOW_IDLE) &&
+		likely(p->policy != SCHED_LOW_IDLE))
 		goto preempt;
 
 	/*
@@ -6534,8 +6546,8 @@ static int task_hot(struct task_struct *p, struct lb_env *env)
 	if (p->sched_class != &fair_sched_class)
 		return 0;
 
-	if (unlikely(p->policy == SCHED_IDLE))
-		return 0;
+	if (unlikely(p->policy == SCHED_IDLE || p->policy == SCHED_LOW_IDLE))
+    	return 0;
 
 	/*
 	 * Buddy candidates are cache hot:

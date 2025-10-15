@@ -13,3 +13,4 @@ make -C $BASE_DIR/../modules/simple_driver/
 
 make -C $BASE_DIR/../disk-test/
 
+make -C $BASE_DIR/../scheduler/

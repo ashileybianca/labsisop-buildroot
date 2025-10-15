@@ -1,9 +1,14 @@
-SYSCALL_DEFINE1(stephen, char *, msg)
+#include <linux/kernel.h>
+#include <linux/syscalls.h>
+#include <linux/uaccess.h>
+
+asmlinkage long sys_log_message(const char __user *msg)
 {
-  char buf[256];
-  long copied = strncpy_from_user(buf, msg, sizeof(buf));
-  if (copied < 0 || copied == sizeof(buf))
-    return -EFAULT;
-  printk(KERN_INFO "stephen syscall called with \"%s\"\n", buf);
-  return 0;
-}Eu não estou entendendo de onde vem os dois pontos ":" nas mesnagens printadas, pois nos meus codigos nao dicionei esses dois pontos. D eonde eles vem? Alem dsisso, como que est asendo substituido stephen por log_message? como isso aconmtece e onde acontece? Esses sao meus codigos: syscall_test_log.c /* * Test the stephen syscall (#329) */ #define _GNU_SOURCE #include <unistd.h> #include <sys/syscall.h> #include <stdio.h> /* * Put your syscall number here. */ #define SYS_stephen 387 int main(int argc, char **argv) { if (argc <= 1) { printf("Must provide a string to give to system call.\n"); return -1; } char *arg = argv[1]; printf("Making FANTASTIC!!! system call with \"%s\".\n", arg); long res = syscall(SYS_stephen, arg); printf("System call FANTASTIC!!! returned %ld.\n", res); return res; } logMessage.c SYSCALL_DEFINE1(stephen, char *, msg) { char buf[256]; long copied = strncpy_from_user(buf, msg, sizeof(buf)); if (copied < 0 || copied == sizeof(buf)) return -EFAULT; printk(KERN_INFO "stephen syscall called with \"%s\"\n", buf); return 0; } syscalls.h [...] asmlinkage long sys_log_message (const char __user * msg); syscall_32.tlb [...] 387 i386 log_message sys_log_message ESSA É A SAÍDA DOS LOGS NO QEMU: # syscall_test_log "oi" Making FANTASTIC!!! system call with "oi". log_message syscall called with: "oi" System call FANTASTIC!!! returned 0. # dmesg | tail Freeing unused kernel memory: 464K Write protecting the kernel text: 5320k Write protecting the kernel read-only data: 1360k tsc: Refined TSC clocksource calibration: 2445.424 MHz clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x233fd5e8294, max_idle_ns: 440795237246 ns clocksource: Switched to clocksource tsc EXT4-fs (sda): re-mounted. Opts: block_validity,barrier,user_xattr log_message syscall called with: "oi" random: crng init done log_message syscall called with: "oi"
+    char buf[256];
+    if (copy_from_user(buf, msg, sizeof(buf) - 1))
+        return -EFAULT;
+
+    buf[sizeof(buf) - 1] = '\0';
+    printk(KERN_INFO "User message: %s\n", buf);
+    return 0;
+}
