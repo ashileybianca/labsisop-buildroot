@@ -1,0 +1,8 @@
+Como fazer:
+
+- Fazer o Makefile para compialr e enviar para a target;
+- Abrir qemu
+
+> script
+> trace-cmd record -e sched_switch script
+> trace-cmd report 
